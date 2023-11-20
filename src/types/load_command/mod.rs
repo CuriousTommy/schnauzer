@@ -246,6 +246,8 @@ pub enum LcVariant {
     SourceVersion(LcSourceVersion),
     /// LC_NOTE
     Note(LcNote),
+    /// LC_DYLD_EXPORTS_TRIE
+    DyldExportTrie(LcLinkEditData),
     /// Any other command type unknown for lib
     Other,
 }
@@ -464,6 +466,10 @@ impl LcVariant {
             LC_NOTE => {
                 let c = reader_mut.ioread_with(endian)?;
                 Ok(Self::Note(c))
+            }
+            LC_DYLD_EXPORTS_TRIE => {
+                let c = reader_mut.ioread_with(endian)?;
+                Ok(Self::DyldExportTrie(c))
             }
             _ => Ok(Self::Other),
         }

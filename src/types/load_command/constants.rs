@@ -67,3 +67,4 @@ pub const LC_VERSION_MIN_TVOS: u32 = 0x2F;
 pub const LC_VERSION_MIN_WATCHOS: u32 = 0x30;
 pub const LC_NOTE: u32 = 0x31;
 pub const LC_BUILD_VERSION: u32 = 0x32;
+pub const LC_DYLD_EXPORTS_TRIE: u32 = 0x33 | LC_REQ_DYLD;
