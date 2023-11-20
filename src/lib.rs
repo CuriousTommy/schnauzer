@@ -13,10 +13,7 @@ pub mod commands;
 
 mod reader;
 
-use std::path::Path;
-
 use self::result::Result;
-use reader::ReaderBuildOption;
 pub use types::*;
 
 use std::cell::RefCell;
@@ -26,6 +23,7 @@ use reader::Reader;
 type RcCell<T> = Rc<RefCell<T>>;
 
 use reader::RcReader;
+pub use reader::ReaderBuildOption;
 
 /// Topmost struct in the library.
 /// Reads file in lazy manner (doesn't load all contents to memory).
