@@ -32,6 +32,7 @@ use rel::*;
 use lc::*;
 use data::*;
 
+use std::path::Path;
 use std::process::exit;
 
 pub fn handle_with_args() -> Result<()> {
@@ -97,7 +98,7 @@ pub fn handle_with_args() -> Result<()> {
     };
 
     let args = Vec::from(args);
-    let object_type = match common::helpers::load_object_type_with(&path) {
+    let object_type = match common::helpers::load_object_type_with(crate::reader::ReaderBuildOption::File(Path::new(&path))) {
         Ok(obj) => obj,
         Err(err) => {
             eprint!("\"{}\":\n{:#?}\n\n", path.bright_white(), err);

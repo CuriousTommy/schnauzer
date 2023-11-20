@@ -16,6 +16,7 @@ mod reader;
 use std::path::Path;
 
 use self::result::Result;
+use reader::ReaderBuildOption;
 pub use types::*;
 
 use std::cell::RefCell;
@@ -36,8 +37,8 @@ impl Parser {
     /// Provide a valid path to binary, library, object file, e.t.c.. 
     /// Full list of mach-o files you can find there - [filetype_constants].
     /// For example: `/bin/cat`.
-    pub fn build(path: &Path) -> Result<Parser> {
-        let reader = Reader::build(path)?;
+    pub fn build(option: ReaderBuildOption) -> Result<Parser> {
+        let reader = Reader::build(option)?;
         Ok(Parser {
             reader
         })
@@ -58,7 +59,7 @@ mod tests {
     #[test]
     fn test_can_output() {
         let path = Path::new("testable/cat");
-        let parser = Parser::build(path).unwrap();
+        let parser = Parser::build(ReaderBuildOption::File(path)).unwrap();
         let obj = parser.parse().unwrap();
         println!("{:#?}", obj);
     }
@@ -66,7 +67,7 @@ mod tests {
     #[test]
     fn test_basic_parsing_stability() {
         let path = Path::new("testable/cat");
-        let parser = Parser::build(path).unwrap();
+        let parser = Parser::build(ReaderBuildOption::File(path)).unwrap();
         let obj = parser.parse().unwrap();
 
         let first = format!("{:#?}", obj);
@@ -78,7 +79,7 @@ mod tests {
     #[test]
     fn test_binary() {
         let path = Path::new("testable/cat");
-        let parser = Parser::build(path).unwrap();
+        let parser = Parser::build(ReaderBuildOption::File(path)).unwrap();
         let obj = parser.parse().unwrap();
         
         let fat_header = if let ObjectType::Fat(f) = obj {
@@ -113,7 +114,7 @@ mod tests {
     #[test]
     fn test_arch_with_header_consistency() {
         let path = Path::new("testable/cat");
-        let parser = Parser::build(path).unwrap();
+        let parser = Parser::build(ReaderBuildOption::File(path)).unwrap();
         let obj = parser.parse().unwrap();
         
         let fat_header = if let ObjectType::Fat(f) = obj {

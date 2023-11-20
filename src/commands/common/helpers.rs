@@ -1,11 +1,10 @@
 use crate::ObjectType;
 use crate::Parser;
 use crate::Result;
-use std::{path::Path};
+use crate::reader::ReaderBuildOption;
 
-pub(crate) fn load_object_type_with(path: &str) -> Result<ObjectType> {
-    let path = Path::new(&path);
-    let parser = Parser::build(path)?;
+pub(crate) fn load_object_type_with(option: ReaderBuildOption) -> Result<ObjectType> {
+    let parser = Parser::build(option)?;
     let object = parser.parse()?;
 
     Ok(object)
