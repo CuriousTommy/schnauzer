@@ -86,6 +86,7 @@ pub fn load_command_to_string(cmd: u32) -> String {
         LC_NOTE => "LC_NOTE".to_string(),
         LC_BUILD_VERSION => "LC_BUILD_VERSION".to_string(),
         LC_DYLD_EXPORTS_TRIE => "LC_DYLD_EXPORTS_TRIE".to_string(),
+        LC_DYLD_CHAINED_FIXUPS => "LC_DYLD_CHAINED_FIXUPS".to_string(),
         _ => format!("{:#x}", Hu32(cmd)),
     }
 }

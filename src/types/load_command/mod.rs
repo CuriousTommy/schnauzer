@@ -248,6 +248,8 @@ pub enum LcVariant {
     Note(LcNote),
     /// LC_DYLD_EXPORTS_TRIE
     DyldExportTrie(LcLinkEditData),
+    /// LC_DYLD_CHAINED_FIXUPS
+    DyldChainedFixups(LcLinkEditData),
     /// Any other command type unknown for lib
     Other,
 }
@@ -470,6 +472,10 @@ impl LcVariant {
             LC_DYLD_EXPORTS_TRIE => {
                 let c = reader_mut.ioread_with(endian)?;
                 Ok(Self::DyldExportTrie(c))
+            }
+            LC_DYLD_CHAINED_FIXUPS => {
+                let c = reader_mut.ioread_with(endian)?;
+                Ok(Self::DyldChainedFixups(c))
             }
             _ => Ok(Self::Other),
         }
