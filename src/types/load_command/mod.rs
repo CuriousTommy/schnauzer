@@ -1,3 +1,4 @@
+use crate::CPUType;
 use crate::X64Context;
 
 use super::fmt_ext::*;
@@ -125,6 +126,7 @@ impl LoadCommand {
         endian: scroll::Endian,
         is_64: bool,
         object_file_offset: u64,
+        cpu_type: CPUType,
     ) -> Result<LoadCommand> {
         let mut reader_mut = reader.borrow_mut();
         reader_mut.seek(SeekFrom::Start(base_offset as u64))?;
@@ -142,6 +144,7 @@ impl LoadCommand {
             endian,
             is_64,
             object_file_offset,
+            cpu_type,
         )?;
 
         Ok(LoadCommand {
@@ -263,6 +266,7 @@ impl LcVariant {
         endian: Endian,
         is_64: bool,
         object_file_offset: u64,
+        cpu_type: CPUType,
     ) -> Result<Self> {
         let reader_clone = reader.clone();
         let mut reader_mut = reader.borrow_mut();

@@ -1,3 +1,4 @@
+use super::CPUType;
 use super::LoadCommand;
 use super::MachHeader;
 use super::RcReader;
@@ -58,6 +59,7 @@ impl MachObject {
             self.header.magic.endian(),
             self.header.magic.is_64(),
             self.base_offset,
+            self.header.cputype,
         )
     }
 
@@ -84,6 +86,7 @@ pub struct LoadCommandIterator {
     endian: scroll::Endian,
     is_64: bool,
     object_file_offset: u64,
+    cpu_type: CPUType,
 }
 
 impl LoadCommandIterator {
@@ -94,6 +97,7 @@ impl LoadCommandIterator {
         endian: scroll::Endian,
         is_64: bool,
         object_file_offset: u64,
+        cpu_type: CPUType,
     ) -> LoadCommandIterator {
         LoadCommandIterator {
             reader,
@@ -102,6 +106,7 @@ impl LoadCommandIterator {
             endian,
             is_64,
             object_file_offset,
+            cpu_type,
         }
     }
 }
@@ -120,6 +125,7 @@ impl Iterator for LoadCommandIterator {
             self.endian,
             self.is_64,
             self.object_file_offset,
+            self.cpu_type,
         )
         .unwrap();
 
