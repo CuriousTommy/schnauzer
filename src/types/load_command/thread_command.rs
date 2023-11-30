@@ -4,7 +4,7 @@ use crate::Result;
 use crate::cpu_constants::*;
 use crate::reader::MutReaderRef;
 
-use scroll::{IOread};
+use scroll::{IOread,SizeWith};
 
 use std::fmt::Debug;
 use std::io::{Seek, SeekFrom};
@@ -15,6 +15,9 @@ use schnauzer_derive::AutoEnumFields;
 
 // LC_THREAD_FLAVOR_HEADER_SIZE = sizeof(thread_command.flavor) + sizeof(thread_command.count)
 const LC_THREAD_FLAVOR_HEADER_SIZE: u32 = size_of::<u32>() as u32 + size_of::<u32>() as u32;
+
+pub const ARM_THREAD_STATE64: u32 = 6;
+pub const ARM_EXCEPTION_STATE64: u32 = 7;
 
 /// `thread_command`
 #[repr(C)]
@@ -142,6 +145,8 @@ impl Iterator for FlavorIterator {
 
 #[derive(Debug)]
 pub enum FlavorState {
+    ArmThreadState64(ArmThreadState64),
+    ArmExceptionState64(ArmExceptionState64),
     Unknown
 }
 
@@ -150,16 +155,94 @@ impl FlavorState {
         match cpu_type {
             CPU_TYPE_ARM64 => {
                 match flavor {
+                    ARM_THREAD_STATE64 => {
+                        let state = ArmThreadState64::parse(reader_mut, endian)?;
+                        Ok(FlavorState::ArmThreadState64(state))
+                    },
+                    ARM_EXCEPTION_STATE64 => {
+                        let state = reader_mut.ioread_with(endian)?;
+                        Ok(FlavorState::ArmExceptionState64(state))
+                    }
                     _ => Ok(FlavorState::Unknown)
                 }
             },
-            
+
             _ => Ok(FlavorState::Unknown)
         }
     }
 
     pub fn all_fields_with_header(&self) -> Option<(&str,Vec<Field>)> {
-        None
+        let name;
+        let fields;
+
+        match self {
+            FlavorState::ArmThreadState64(state) => {
+                name = "STRUCT_ARM_THREAD_STATE64";
+                fields = state.all_fields();
+            },
+            FlavorState::ArmExceptionState64(state) => {
+                name = "STRUCT_ARM_EXCEPTION_STATE64";
+                fields = state.all_fields();
+            }
+            FlavorState::Unknown => return None,
+        }
+
+        Some((name,fields))
     }
 }
 
+#[derive(Debug)]
+pub struct ArmThreadState64 {
+    pub x: [u64; 29],
+    pub fp: u64,
+    pub lr: u64,
+    pub sp: u64,
+    pub pc: u64,
+    pub cpsr: u32,
+    pub flags: u32,
+}
+
+impl ArmThreadState64 {
+    // Workaround due to the size of ArmThreadState64 being larger then the 256 buffer limit...
+    fn parse(reader_mut: &mut MutReaderRef, endian: scroll::Endian) -> Result<ArmThreadState64>{
+        let mut x: [u64; 29] = [0; 29];
+        for i in 0..29 {
+            x[i] = reader_mut.ioread_with(endian)?;
+        }
+
+        let fp: u64 = reader_mut.ioread_with(endian)?;
+        let lr: u64 = reader_mut.ioread_with(endian)?;
+        let sp: u64 = reader_mut.ioread_with(endian)?;
+        let pc: u64 = reader_mut.ioread_with(endian)?;
+        let cpsr: u32 = reader_mut.ioread_with(endian)?;
+        let flags: u32 = reader_mut.ioread_with(endian)?;
+
+        Ok(ArmThreadState64 { x, fp, lr, sp, pc, cpsr, flags })
+    }
+}
+
+impl AutoEnumFields for ArmThreadState64 {
+    fn all_fields(&self) -> Vec<Field> {
+        let mut fields: Vec<Field> = Vec::new();
+
+        for i in 0..29 {
+            fields.push(Field { name: format!("x{}", i), value: self.x[i].to_string() });
+        }
+
+        fields.push(Field { name: "fp".to_string(), value: self.fp.to_string() });
+        fields.push(Field { name: "lr".to_string(), value: self.lr.to_string() });
+        fields.push(Field { name: "sp".to_string(), value: self.sp.to_string() });
+        fields.push(Field { name: "pc".to_string(), value: self.pc.to_string() });
+        fields.push(Field { name: "cpsr".to_string(), value: self.cpsr.to_string() });
+        fields.push(Field { name: "flags".to_string(), value: self.flags.to_string() });
+
+        fields
+    }
+}
+
+#[derive(Debug,IOread,SizeWith,AutoEnumFields)]
+pub struct ArmExceptionState64 {
+	pub far: u64,
+	pub esr: u32,
+	pub exception: u32,
+}
