@@ -1,4 +1,5 @@
 use crate::CPUType;
+use crate::{Hu32,Hu64};
 use crate::RcReader;
 use crate::Result;
 use crate::cpu_constants::*;
@@ -193,29 +194,29 @@ impl FlavorState {
 
 #[derive(Debug)]
 pub struct ArmThreadState64 {
-    pub x: [u64; 29],
-    pub fp: u64,
-    pub lr: u64,
-    pub sp: u64,
-    pub pc: u64,
-    pub cpsr: u32,
-    pub flags: u32,
+    pub x: [Hu64; 29],
+    pub fp: Hu64,
+    pub lr: Hu64,
+    pub sp: Hu64,
+    pub pc: Hu64,
+    pub cpsr: Hu32,
+    pub flags: Hu32,
 }
 
 impl ArmThreadState64 {
     // Workaround due to the size of ArmThreadState64 being larger then the 256 buffer limit...
     fn parse(reader_mut: &mut MutReaderRef, endian: scroll::Endian) -> Result<ArmThreadState64>{
-        let mut x: [u64; 29] = [0; 29];
+        let mut x: [Hu64; 29] = [Hu64(0); 29];
         for i in 0..29 {
             x[i] = reader_mut.ioread_with(endian)?;
         }
 
-        let fp: u64 = reader_mut.ioread_with(endian)?;
-        let lr: u64 = reader_mut.ioread_with(endian)?;
-        let sp: u64 = reader_mut.ioread_with(endian)?;
-        let pc: u64 = reader_mut.ioread_with(endian)?;
-        let cpsr: u32 = reader_mut.ioread_with(endian)?;
-        let flags: u32 = reader_mut.ioread_with(endian)?;
+        let fp: Hu64 = reader_mut.ioread_with(endian)?;
+        let lr: Hu64 = reader_mut.ioread_with(endian)?;
+        let sp: Hu64 = reader_mut.ioread_with(endian)?;
+        let pc: Hu64 = reader_mut.ioread_with(endian)?;
+        let cpsr: Hu32 = reader_mut.ioread_with(endian)?;
+        let flags: Hu32 = reader_mut.ioread_with(endian)?;
 
         Ok(ArmThreadState64 { x, fp, lr, sp, pc, cpsr, flags })
     }
@@ -242,7 +243,7 @@ impl AutoEnumFields for ArmThreadState64 {
 
 #[derive(Debug,IOread,SizeWith,AutoEnumFields)]
 pub struct ArmExceptionState64 {
-	pub far: u64,
-	pub esr: u32,
-	pub exception: u32,
+	pub far: Hu64,
+	pub esr: Hu32,
+	pub exception: Hu32,
 }

@@ -175,7 +175,7 @@ pub struct Hi32(pub i32);
 hex_display!(Hi32, 10);
 
 #[repr(transparent)]
-#[derive(IOread, SizeWith)]
+#[derive(IOread, SizeWith, Clone, Copy)]
 pub struct Hu64(pub u64);
 from_ctx_64_tuple_struct!(Hu64, u64, u32);
 hex_display!(Hu64, 18);
