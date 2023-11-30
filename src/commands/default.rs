@@ -124,7 +124,25 @@ impl DefaultHandler {
                     .out_dashed_field(&field.name, &field.value, level + 1);
             }
 
+            self.handle_thread_state(&thread_flavor, level + 1);
             self.printer.out_tile(level + 1);
+        }
+    }
+
+    fn handle_thread_state(&self, thread_flavor: &LcThreadFlavor, level: usize) {
+        match thread_flavor.state.all_fields_with_header() {
+            Some((header, fields)) => {
+                self.printer
+                    .out_dashed_field("state", header, level);
+                for field in fields {
+                    self.printer
+                        .out_dashed_field(&field.name, &field.value, level + 1);
+                }
+            },
+            None => {
+                self.printer
+                    .out_dashed_field("state", "unknown", level);
+            },
         }
     }
 }

@@ -345,12 +345,12 @@ impl LcVariant {
             }
             LC_THREAD => {
                 std::mem::drop(reader_mut);
-                let c = LcThread::parse(reader, cmdsize, base_offset, endian)?;
+                let c = LcThread::parse(reader, cmdsize, base_offset, endian, cpu_type)?;
                 Ok(Self::Thread(c))
             }
             LC_UNIXTHREAD => {
                 std::mem::drop(reader_mut);
-                let c = LcThread::parse(reader, cmdsize, base_offset, endian)?;
+                let c = LcThread::parse(reader, cmdsize, base_offset, endian, cpu_type)?;
                 Ok(Self::Thread(c))
             }
             LC_ROUTINES => {

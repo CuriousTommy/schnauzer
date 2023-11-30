@@ -5,7 +5,9 @@ use super::result::*;
 
 use std::rc::Rc;
 use std::cell::RefCell;
+use std::cell::RefMut;
 pub(super) type RcReader = super::RcCell<Reader>;
+pub(super) type MutReaderRef<'a> = RefMut<'a, Reader>;
 
 #[derive(Debug)]
 pub struct Reader {
