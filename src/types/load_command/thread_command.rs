@@ -17,6 +17,9 @@ use schnauzer_derive::AutoEnumFields;
 // LC_THREAD_FLAVOR_HEADER_SIZE = sizeof(thread_command.flavor) + sizeof(thread_command.count)
 const LC_THREAD_FLAVOR_HEADER_SIZE: u32 = size_of::<u32>() as u32 + size_of::<u32>() as u32;
 
+pub const X86_THREAD_STATE32: u32 = 1;
+pub const X86_THREAD_STATE64: u32 = 4;
+
 pub const ARM_THREAD_STATE64: u32 = 6;
 pub const ARM_EXCEPTION_STATE64: u32 = 7;
 
@@ -146,6 +149,8 @@ impl Iterator for FlavorIterator {
 
 #[derive(Debug)]
 pub enum FlavorState {
+    X86ThreadState32(X86ThreadState32),
+    X86ThreadState64(X86ThreadState64),
     ArmThreadState64(ArmThreadState64),
     ArmExceptionState64(ArmExceptionState64),
     Unknown
@@ -154,6 +159,26 @@ pub enum FlavorState {
 impl FlavorState {
     fn parse(reader_mut: &mut MutReaderRef, endian: scroll::Endian, flavor: u32, cpu_type: CPUType) -> Result<FlavorState> {
         match cpu_type {
+            CPU_TYPE_I386 => {
+                match flavor {
+                    X86_THREAD_STATE32 => {
+                        let state = reader_mut.ioread_with(endian)?;
+                        Ok(FlavorState::X86ThreadState32(state))
+                    }
+                    _ => Ok(FlavorState::Unknown)
+                }
+            },
+
+            CPU_TYPE_X86_64 => {
+                match flavor {
+                    X86_THREAD_STATE64 => {
+                        let state = reader_mut.ioread_with(endian)?;
+                        Ok(FlavorState::X86ThreadState64(state))
+                    }
+                    _ => Ok(FlavorState::Unknown)
+                }
+            },
+
             CPU_TYPE_ARM64 => {
                 match flavor {
                     ARM_THREAD_STATE64 => {
@@ -177,6 +202,14 @@ impl FlavorState {
         let fields;
 
         match self {
+            FlavorState::X86ThreadState32(state) => {
+                name = "STRUCT_X86_THREAD_STATE32";
+                fields = state.all_fields();
+            },
+            FlavorState::X86ThreadState64(state) => {
+                name = "STRUCT_X86_THREAD_STATE64";
+                fields = state.all_fields();
+            }
             FlavorState::ArmThreadState64(state) => {
                 name = "STRUCT_ARM_THREAD_STATE64";
                 fields = state.all_fields();
@@ -190,6 +223,52 @@ impl FlavorState {
 
         Some((name,fields))
     }
+}
+
+#[derive(Debug,IOread,SizeWith,AutoEnumFields)]
+pub struct X86ThreadState32
+{
+    pub eax: Hu32,
+    pub ebx: Hu32,
+    pub ecx: Hu32,
+    pub edx: Hu32,
+    pub edi: Hu32,
+    pub esi: Hu32,
+    pub ebp: Hu32,
+    pub esp: Hu32,
+    pub ss: Hu32,
+    pub eflags: Hu32,
+    pub eip: Hu32,
+    pub cs: Hu32,
+    pub ds: Hu32,
+    pub es: Hu32,
+    pub fs: Hu32,
+    pub gs: Hu32,
+}
+
+#[derive(Debug,IOread,SizeWith,AutoEnumFields)]
+pub struct X86ThreadState64 {
+	pub rax: Hu64,
+	pub rbx: Hu64,
+	pub rcx: Hu64,
+	pub rdx: Hu64,
+	pub rdi: Hu64,
+	pub rsi: Hu64,
+	pub rbp: Hu64,
+	pub rsp: Hu64,
+	pub r8: Hu64,
+	pub r9: Hu64,
+	pub r10: Hu64,
+	pub r11: Hu64,
+	pub r12: Hu64,
+	pub r13: Hu64,
+	pub r14: Hu64,
+	pub r15: Hu64,
+	pub rip: Hu64,
+	pub rflags: Hu64,
+	pub cs: Hu64,
+	pub fs: Hu64,
+    pub gs: Hu64,
 }
 
 #[derive(Debug)]
